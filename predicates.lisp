@@ -32,6 +32,8 @@
 
 (defgeneric group-p (stucture &optional operation)
   (:documentation "Checks if a given set and an operation forms a group."))
+(defmethod group-p ((elements list) &optional operation)
+  (and (closurep elements operation) (identityp elements operation) (invertiblep elements nil operation)))
 (defmethod group-p ((s set-class) &optional operation)
   (and (closurep s operation) (identityp s operation) (invertiblep s nil operation)))
 (defmethod group-p ((sg semi-group) &optional (operation (operation sg)))

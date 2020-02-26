@@ -42,3 +42,11 @@
   (apply #'vector (loop for p across permutation collect (aref s (- p 1)))))
 (defmethod combination ((s list) permutation)
   (loop for p across permutation collect (nth (- p 1) s)))
+
+(defun power-set (list)
+    (if (null list)
+	'(())
+	(let ((sets (power-set (cdr list)))
+	      (element (car list)))
+	  (append sets (loop for s in sets collect (cons element s))))))
+

@@ -12,6 +12,9 @@
     :documentation "How an element should be printed"))
   (:documentation "An unordered set."))
 
+(defun make-set (set &optional (set-format #'identity))
+  (make-instance 'set-class :set set :format set-format))
+
 (defgeneric set-union (a b)
   (:documentation "Performs a union on two containers."))
 (defgeneric set-intersect (a b)
@@ -30,6 +33,15 @@
   (:documentation "Gets the order of an algebraic structure (count of elements)."))
 (defmethod order ((s set-class))
   (length (elements s)))
+
+(defun element-order (element group)
+  (let ((id (group-identity group))
+	(op (operation group)))
+    (labels ((iter (i e)
+	       (if (equalp e id)
+		   i
+		   (iter (+ i 1) (funcall op e element)))))
+      (iter 1 element))))
 
 (define-condition bad-argument (error)
   ((argument :initarg :arg :reader argument)
@@ -83,7 +95,7 @@
 			    (equalp (funcall operation id conj) conj)))
 	 id)))
 (defmethod get-identity ((s set-class) &optional operation)
-  (call-next-method (elements s) operation))
+  (get-identity (elements s) operation))
 (defmethod get-identity ((sg semi-group) &optional (operation (operation sg)))
   (call-next-method sg operation))
 
@@ -97,7 +109,7 @@
 		      (equalp identity (funcall operation element inv)))
 	     inv)))))
 (defmethod get-inverse ((s set-class) element &optional id operation)
-  (call-next-method (elements s) element id operation))
+  (get-inverse (elements s) element id operation))
 (defmethod get-inverse ((sg semi-group) element &optional id (operation (operation sg)))
   (call-next-method sg element id operation))
 
@@ -111,6 +123,26 @@
 		 (format t ", ")
 		 (iter (cdr r))))))
     (iter (elements s))))
+
+(defgeneric lagrange-sets (structure)
+  (:documentation "Gets all the subsets of a structure that have a size thats a divisor of the size of the orginial structure."))
+(defmethod lagrange-sets ((s set-class))
+  (let ((size (order s)))
+    (labels ((includep (set)
+	       (and (not (null set))
+		    (= 0 (mod size (length set))))))
+      (remove-if-not #'includep (power-set (elements s))))))
+
+(defun subgroups (group)
+  (labels ((is-group (s)
+	     (group-p s (operation group)))
+	   (get-subsets ()
+	     (if (primep (order group))
+		 (cons (elements group) (loop for e in (elements group) collect (list e)))
+		 (lagrange-sets group)))
+	   (get-subgroups ()
+	     (remove-if-not #'is-group (get-subsets))))
+    (loop for subgroup in (get-subgroups) collect (make-group subgroup (operation group)))))
 
 (load "predicates.lisp")
 (load "group-makers.lisp")

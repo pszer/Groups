@@ -13,6 +13,7 @@
   `(make-group (permutation-set ,n) #'combination :skip-test t :premade-identity (apply #'make-permutation (integers 1 ,n))))
 
 (defun dihedral-fn (n)
+  "The binary function for combining elements in the dihedral group"
   (macrolet ((to-pos (p) ; ep = p^-1e, given an ep this will give p
 	       `(- (+ ,p 1)))
 	     (inv (p)
