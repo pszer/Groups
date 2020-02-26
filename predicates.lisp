@@ -5,23 +5,28 @@
 (defgeneric invertiblep (structure &optional id operation)
   (:documentation "Checks if a given structure has an identity and every element is invertible under an operation."))
 
+(defmethod closurep ((elements list) &optional operation)
+  (loop for g in elements always
+       (loop for h in elements always (and (member (funcall operation g h) elements :test #'equalp)
+					   (member (funcall operation h g) elements :test #'equalp)))))
 (defmethod closurep ((s set-class) &optional operation)
-  (let ((elements (elements s)))
-    (loop for g in elements always
-	 (loop for h in elements always (and (member (funcall operation g h) elements :test #'equalp)
-					     (member (funcall operation h g) elements :test #'equalp))))))
+  (closurep (elements s) operation))
 (defmethod closurep ((sg semi-group) &optional (operation (operation sg)))
   (call-next-method sg operation))
 
+(defmethod invertiblep ((elements list) &optional id operation)
+  (let ((identity (if id id (get-identity elements operation))))
+    (loop for g in elements always
+	 (get-inverse elements g identity operation))))
 (defmethod invertiblep ((s set-class) &optional id operation)
-  (let ((identity (if id id (get-identity s operation))))
-    (loop for g in (elements s) always
-	 (get-inverse s g identity operation))))
+  (invertiblep (elements s) id operation))
 (defmethod invertiblep ((sg semi-group) &optional id (operation (operation sg)))
   (call-next-method sg id operation))
 
+(defmethod identityp ((elements list) &optional operation)
+  (when (get-identity elements operation) t))
 (defmethod identityp ((s set-class) &optional operation)
-  (when (get-identity s operation) t))
+  (identityp (elements s) operation))
 (defmethod identityp ((sg semi-group) &optional (operation (operation sg)))
   (call-next-method sg operation))
 

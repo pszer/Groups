@@ -76,24 +76,28 @@
 
 (defgeneric get-identity (structure &optional operation)
   (:documentation "Gets the identity element in a structure under a binary operation."))
-(defmethod get-identity ((s set-class) &optional operation)
-  (loop for id in (elements s) thereis
-       (when (loop for conj in (elements s)
+(defmethod get-identity ((elements list) &optional operation)
+  (loop for id in elements thereis
+       (when (loop for conj in elements
 		always (and (equalp (funcall operation conj id) conj)
 			    (equalp (funcall operation id conj) conj)))
 	 id)))
+(defmethod get-identity ((s set-class) &optional operation)
+  (call-next-method (elements s) operation))
 (defmethod get-identity ((sg semi-group) &optional (operation (operation sg)))
   (call-next-method sg operation))
 
 (defgeneric get-inverse (structure element &optional identity operation)
   (:documentation "Gets the inverse element in a structure under a binary operation"))
-(defmethod get-inverse ((s set-class) element &optional (id nil id-p) operation)
-  (let ((identity (if (and id-p id) id (get-identity s operation))))
+(defmethod get-inverse ((elements list) element &optional (id nil id-p) operation)
+  (let ((identity (if (and id-p id) id (get-identity elements operation))))
     (when identity
-      (loop for inv in (elements s) thereis
+      (loop for inv in elements thereis
 	   (when (and (equalp identity (funcall operation inv element))
 		      (equalp identity (funcall operation element inv)))
 	     inv)))))
+(defmethod get-inverse ((s set-class) element &optional id operation)
+  (call-next-method (elements s) element id operation))
 (defmethod get-inverse ((sg semi-group) element &optional id (operation (operation sg)))
   (call-next-method sg element id operation))
 
