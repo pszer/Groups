@@ -1,4 +1,3 @@
-
 (defgeneric closurep (structure &optional operation)
   (:documentation "Checks if a given structure is closed under an operation."))
 (defgeneric identityp (structure &optional operation)
@@ -9,8 +8,8 @@
 (defmethod closurep ((s set-class) &optional operation)
   (let ((elements (elements s)))
     (loop for g in elements always
-	 (loop for h in elements always (and (member (funcall operation g h) elements)
-					     (member (funcall operation h g) elements))))))
+	 (loop for h in elements always (and (member (funcall operation g h) elements :test #'equalp)
+					     (member (funcall operation h g) elements :test #'equalp))))))
 (defmethod closurep ((sg semi-group) &optional (operation (operation sg)))
   (call-next-method sg operation))
 

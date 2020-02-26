@@ -1,15 +1,3 @@
-(defpackage :group
-  (:use :cl)
-  (:export
-   :set-class
-   :set-union
-   :set-intersect
-   :difference
-   :+mod
-   :*mod))
-(in-package :group)
-
-(load "predicates.lisp")
 (load "misc.lisp")
 
 (defclass set-class ()
@@ -20,11 +8,11 @@
   (:documentation "An unordered set."))
 
 (defgeneric set-union (a b)
-  (:documentation "Performs a union on two containers"))
+  (:documentation "Performs a union on two containers."))
 (defgeneric set-intersect (a b)
-  (:documentation "Performs an intersect on two containers"))
+  (:documentation "Performs an intersect on two containers."))
 (defgeneric difference (a b)
-  (:documentation "Gets the difference of container a from b"))
+  (:documentation "Gets the difference of container a from b."))
 
 (defmethod set-union ((a set-class) (b set-class))
   (make-instance 'set-class :set (union (elements a) (elements b))))
@@ -33,8 +21,13 @@
 (defmethod difference ((a set-class) (b set-class))
   (make-instance 'set-class :set (set-difference (elements a) (elements b))))
 
+(defgeneric order (structure)
+  (:documentation "Gets the order of an algebraic structure (count of elements)."))
+(defmethod order ((s set-class))
+  (length (elements s)))
+
 (define-condition bad-argument (error)
-  ((argument :initarg :arg :reader arg)
+  ((argument :initarg :arg :reader argument)
    (type-needed :initarg :type :reader type-needed)))
 (define-condition bad-group-axioms (error)
   ((set-elements :initarg :elements :reader elements)
@@ -61,12 +54,14 @@
     :reader group-identity))
   (:documentation "Group algebraic structure"))
 
-(defun make-group (set operation)
-  (restart-case (make-instance 'group :set set :operation operation)
+(defun make-group (set operation &key (skip-test nil) (premade-identity nil))
+  (restart-case (make-instance 'group :set set :operation operation :skip-test skip-test :premade-identity premade-identity)
     (make-semi-group () :report "Make semigroup instead of a group"
 		     (make-semigroup set operation))))
-(defmethod initialize-instance :after ((g group) &key (skip-test nil))
-  (setf (slot-value g 'identity) (get-identity g))
+(defmethod initialize-instance :after ((g group) &key (skip-test nil) (premade-identity nil))
+  (if premade-identity
+      (setf (slot-value g 'identity) premade-identity)
+      (setf (slot-value g 'identity) (get-identity g)))
   (unless skip-test
     (macrolet ((do-error (axiom) `(error 'bad-group-axioms :elements (elements g) :operation (operation g) :axiom ,axiom)))
       (cond ((not (closurep g))       (do-error 'closure))
@@ -78,8 +73,8 @@
 (defmethod get-identity ((s set-class) &optional operation)
   (loop for id in (elements s) thereis
        (when (loop for conj in (elements s)
-		always (and (equal (funcall operation conj id) conj)
-			    (equal (funcall operation id conj) conj)))
+		always (and (equalp (funcall operation conj id) conj)
+			    (equalp (funcall operation id conj) conj)))
 	 id)))
 (defmethod get-identity ((sg semi-group) &optional (operation (operation sg)))
   (call-next-method sg operation))
@@ -90,8 +85,11 @@
   (let ((identity (if (and id-p id) id (get-identity s operation))))
     (when identity
       (loop for inv in (elements s) thereis
-	   (when (and (equal identity (funcall operation inv element))
-		      (equal identity (funcall operation element inv)))
+	   (when (and (equalp identity (funcall operation inv element))
+		      (equalp identity (funcall operation element inv)))
 	     inv)))))
 (defmethod get-inverse ((sg semi-group) element &optional id (operation (operation sg)))
   (call-next-method sg element id operation))
+
+(load "predicates.lisp")
+(load "group-makers.lisp")
