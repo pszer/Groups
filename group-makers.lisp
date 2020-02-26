@@ -29,8 +29,8 @@
 (defun dihedral-format (n)
   #'(lambda (x)
       (if (>= x 0)
-	  (format nil "~a\°" (* x (/ (* 180 (- n 2)) n)))
-	  (format nil "r~3,'0d" (* (/ (- -1 x) 2) (/ (* 180 (- n 2)) n))))))
+	  (format nil "~a\°" (* x (/ 360 n)))
+	  (format nil "r~3,'0d" (* (/ (- -1 x) 2) (/ 360 n))))))
 
 (defmacro dihedral-group (n)
   "Returns the dihedral group order 2n."

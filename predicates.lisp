@@ -14,12 +14,20 @@
   (call-next-method sg operation))
 
 (defmethod invertiblep ((s set-class) &optional id operation)
-  (loop for g in (elements s) always
-       (get-inverse s g id operation)))
+  (let ((identity (if id id (get-identity s operation))))
+    (loop for g in (elements s) always
+	 (get-inverse s g identity operation))))
 (defmethod invertiblep ((sg semi-group) &optional id (operation (operation sg)))
   (call-next-method sg id operation))
 
 (defmethod identityp ((s set-class) &optional operation)
   (when (get-identity s operation) t))
 (defmethod identityp ((sg semi-group) &optional (operation (operation sg)))
+  (call-next-method sg operation))
+
+(defgeneric group-p (stucture &optional operation)
+  (:documentation "Checks if a given set and an operation forms a group."))
+(defmethod group-p ((s set-class) &optional operation)
+  (and (closurep s operation) (identityp s operation) (invertiblep s nil operation)))
+(defmethod group-p ((sg semi-group) &optional (operation (operation sg)))
   (call-next-method sg operation))
