@@ -70,6 +70,9 @@
 (defun surjectivep (mapping)
   (set-equal (codomain mapping) (image mapping)))
 
+(defun bijectivep (mapping)
+  (and (injectivep mapping) (surjectivep mapping)))
+
 (defun homomorphismp (mapping domain-operation codomain-operation)
   (let ((domain (domain mapping)))
     (loop for a in domain always
@@ -77,4 +80,19 @@
 					      (apply-map mapping (funcall domain-operation a b)))))))
 
 (defun isomorphismp (mapping domain-operation codomain-operation)
-  (and (injectivep mapping) (surjectivep mapping) (homomorphismp mapping domain-operation codomain-operation)))
+  (and (bijectivep mapping) (homomorphismp mapping domain-operation codomain-operation)))
+
+(defun all-bijections (domain codomain)
+  "Set of all bijective maps :domain -> codomain where co/domain are sets of equal size."
+  (let ((domain-length (length domain))
+	(codomain-length (length codomain)))
+    (if (= domain-length codomain-length)
+	(labels ((permutation-map (permutation)
+		   (make-permutation-mapping permutation domain codomain)))
+	  (mapcar #'permutation-map (permutation-set domain-length)))
+	nil)))
+(defun all-isomorphisms (domain codomain)
+  "Set of all isomorphic maps :domain -> codomain where co/domain are groups."
+  (labels ((is-homomorphism-p (bijection)
+	     (homomorphismp bijection (operation domain) (operation codomain))))
+    (remove-if-not #'is-homomorphism-p (all-bijections (elements domain) (elements codomain)))))

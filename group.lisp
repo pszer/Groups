@@ -164,10 +164,15 @@
 (defmethod power (element power (g group) &optional (identity (group-identity g)))
   (power element power (operation g) identity))
 
-(defmethod group-homomorphismp (mapping domain codomain)
+(defmethod group-map-homomorphismp (mapping domain codomain)
   (homomorphismp mapping (operation domain) (operation codomain)))
-(defmethod group-isomorphismp (mapping domain codomain)
+(defmethod group-map-isomorphismp (mapping domain codomain)
   (isomorphismp mapping (operation domain) (operation codomain)))
+
+(defun isomorphicp (a b)
+  (not (null (all-isomorphisms a b))))
+(defun is-subgroup (sub super)
+  (logic E (super-sub (subgroups super)) (isomorphicp sub super-sub)))
 
 (load "predicates.lisp")
 (load "group-makers.lisp")
