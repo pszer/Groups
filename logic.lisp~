@@ -1,0 +1,10 @@
+;;; allows for first-order logic checking
+
+(load "group.lisp")
+
+(defgeneric get-elements (structure)
+  (:documentation "Gets the elements of an algebraic structure."))
+(defmethod get-elements ((elements list))
+  elements)
+(defmethod get-elements ((s set-class))
+  (elements s))

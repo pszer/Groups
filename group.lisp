@@ -1,4 +1,5 @@
 (load "misc.lisp")
+(load "map.lisp")
 
 (defclass set-class ()
   ((elements
@@ -42,6 +43,14 @@
 		   i
 		   (iter (+ i 1) (funcall op e element)))))
       (iter 1 element))))
+(defun generate (element operation)
+  (labels ((next (current)
+	     (funcall operation current element))
+	   (iter (current result)
+	     (if (equalp element current)
+		 (cons element (reverse result))
+		 (iter (next current) (cons current result)))))
+    (iter (next element) '())))
 
 (define-condition bad-argument (error)
   ((argument :initarg :arg :reader argument)
@@ -143,6 +152,22 @@
 	   (get-subgroups ()
 	     (remove-if-not #'is-group (get-subsets))))
     (loop for subgroup in (get-subgroups) collect (make-group subgroup (operation group)))))
+
+(defgeneric power (element power structure &optional identity)
+  (:documentation "Applies an element to itself according to a given structure (a binary operation or algebraic structure)."))
+(defmethod power (element power (operation function) &optional (identity 1))
+  (if (= 0 power)
+      identity
+      (funcall operation element (power element (- power 1) operation identity))))
+(defmethod power (element power (sg semi-group) &optional (identity (get-identity sg)))
+  (power element power (operation sg) identity))
+(defmethod power (element power (g group) &optional (identity (group-identity g)))
+  (power element power (operation g) identity))
+
+(defmethod group-homomorphismp (mapping domain codomain)
+  (homomorphismp mapping (operation domain) (operation codomain)))
+(defmethod group-isomorphismp (mapping domain codomain)
+  (isomorphismp mapping (operation domain) (operation codomain)))
 
 (load "predicates.lisp")
 (load "group-makers.lisp")

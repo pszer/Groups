@@ -1,0 +1,16 @@
+(defclass mapping
+    ((fn
+      :initarg :map
+      :initform #'identity
+      :accessor fn)
+     (domain
+      :initarg :domain
+      :initform nil
+      :accessor domain)
+     (codomain
+      :initarg :codomain
+      :initform nil
+      :accessor codomain)))
+
+(defun apply-map (mapping object)
+  (funcall (fn mapping) object))
