@@ -50,12 +50,15 @@
   (:documentation "Applies a mapping"))
 (defmethod apply-map (mapping object)
   (funcall (fn mapping) object))
+
 (defun image (mapping)
   (labels ((iter (rest result)
 	     (if (null rest)
 		 result
 		 (iter (cdr rest) (cons (apply-map mapping (car rest)) result)))))
     (nreverse (iter (domain mapping) '()))))
+(defun images (mappings)
+  (loop for m in mappings collect (image m)))
 
 (defun injectivep (mapping)
   (labels ((iter (rest tested)
@@ -96,3 +99,15 @@
   (labels ((is-homomorphism-p (bijection)
 	     (homomorphismp bijection (operation domain) (operation codomain))))
     (remove-if-not #'is-homomorphism-p (all-bijections (elements domain) (elements codomain)))))
+
+(defun automorphisms (group)
+  "Set of all automorphisms of a group."
+  (all-isomorphisms group group))
+(defun inner-automorphisms (group)
+  (let ((op (operation group))
+	(elts (elements group)))
+    (labels ((conjugation (conj)
+	       #'(lambda (x) (funcall op (get-inverse group conj) (funcall op x conj)))))
+      (loop for conjugate in elts collect
+	   (make-mapping (conjugation conjugate)
+			 elts)))))
