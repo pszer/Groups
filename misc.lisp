@@ -43,9 +43,6 @@
 (defmethod combination ((s list) permutation)
   (loop for p across permutation collect (nth (- p 1) s)))
 
-(defun set-equal (a b)
-  (and (= (length a) (length b)) (eq nil (set-difference a b))))
-
 (defun power-set (list)
     (if (null list)
 	'(())

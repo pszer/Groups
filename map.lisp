@@ -50,6 +50,10 @@
   (:documentation "Applies a mapping"))
 (defmethod apply-map (mapping object)
   (funcall (fn mapping) object))
+(defmethod apply-map (mapping (elts list))
+  (mapcar #'(lambda (x) (apply-map mapping x)) elts))
+(defmethod apply-map (mapping (elts set-class))
+  (apply-map mapping (elements elts)))
 
 (defun image (mapping)
   (labels ((iter (rest result)
